@@ -72,10 +72,8 @@ private:
 	void defineDependings() {
 		firstRule();
 		secondRule();
-        /*
 		thirdRule();
-		while (forthRule());
-         */
+//		while (forthRule());
 	}
     
 	void firstRule() {
@@ -122,6 +120,7 @@ private:
 			}
 		}
 	}
+
 	void secondRule() {
         /*Второе правило:
          Место расположенное справа от закрывающей скобки
@@ -169,7 +168,23 @@ private:
 			}
 		}
     }
-	void thirdRule();
+    
+	void thirdRule() {
+        int iLvl = 0;
+        for (int i = R.size(); i > 0; i--) {
+            if (R[i].symbol == '>') {
+                iLvl = 1;
+                for (int j = i - 1; (j > 0 && iLvl != 0); j--) {
+                    if (X.find(R[j].symbol) != string::npos && iLvl == 1) {
+                        R[j-1].addDependsOn(i + 1);
+                    }
+                    else if (R[j].symbol == '<') {
+                        iLvl--;
+                    }
+                }
+            }
+        }
+    }
 //	bool forthRule();
 
 public:
