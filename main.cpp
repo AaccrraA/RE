@@ -5,6 +5,26 @@
 #include <vector>
 using namespace std;
 
+struct Element {
+	char symbol;
+	vector<int> dependsOn;
+
+	void addDependsOn(int d) {
+		bool isHere = false;
+		for (int i = 0; i < dependsOn.size(); i++) {
+			if (dependsOn[i] == d) {
+				isHere = true;
+				break;
+			}
+		}
+		if (!isHere) {
+			dependsOn.resize(dependsOn.size() + 1);
+			dependsOn[dependsOn.size() - 1] = d;
+		}
+	}
+
+};
+
 struct Cortege {
 private:
 	string X;
