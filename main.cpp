@@ -9,18 +9,19 @@ struct Element {
 	char symbol;
 	vector<int> dependsOn;
 
-	void addDependsOn(int d) {
-		bool isHere = false;
+	bool addDependsOn(int d) {
+        bool isNew = true;
 		for (int i = 0; i < dependsOn.size(); i++) {
 			if (dependsOn[i] == d) {
-				isHere = true;
+                isNew = false;
 				break;
 			}
 		}
-		if (!isHere) {
+		if (isNew) {
 			dependsOn.resize(dependsOn.size() + 1);
 			dependsOn[dependsOn.size() - 1] = d;
 		}
+        return isNew;
 	}
 
 };
@@ -73,7 +74,7 @@ private:
 		firstRule();
 		secondRule();
 		thirdRule();
-//		while (forthRule());
+		forthRule();
 	}
     
 	void firstRule() {
@@ -185,7 +186,28 @@ private:
             }
         }
     }
-//	bool forthRule();
+
+	void forthRule() {
+        /*Четвертое правило:
+         Если место a подчинено месту b,
+         и место b подчинено месту c, то
+         место a подчинено месту c
+         */
+
+        bool isSmthChanged = false;
+        do {
+            isSmthChanged = false;
+            // Пробегаем все места выражения
+            for (int i = 0; i < R.size(); i+=2)
+                // Пробегаем j мест, которым подчинено место i
+                for (int j = 0; j < R[i].dependsOn.size(); j++)
+                    // Пробегаем выражение в поиске места подчиненного месту i
+                    for (int k = 0; k < R.size(); k+=2)
+                        if (find(R[k].dependsOn.begin(), R[k].dependsOn.end(), i) != R[k].dependsOn.end())
+                            if (R[k].addDependsOn(R[i].dependsOn[j]))
+                                isSmthChanged = true;
+        } while(isSmthChanged);
+    }
 
 public:
 	void initDefault() {
