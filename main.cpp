@@ -8,6 +8,9 @@ using namespace std;
 struct Element {
 	char symbol;
 	vector<int> dependsOn;
+	
+	bool isMainPlace;
+	bool isPreMainPlace;
 
 	bool addDependsOn(int d) {
         bool isNew = true;
@@ -70,28 +73,22 @@ private:
 			}
 		}
 	}
+
 	void defineDependings() {
-		firstRule();
-		secondRule();
-		thirdRule();
-		forthRule();
-	}
-    
-	void firstRule() {
 		/* Первое правило:
 		Начальные места всех термов многочлена помещенных в обычные или
-		итерационные скобки подчинены месту, 
+		итерационные скобки подчинены месту,
 		расположенному слева от открывающей скобки
 		*/
 		int sLvl = 0;
-        int iLvl = 0;
+		int iLvl = 0;
 		for (int i = 0; i < R.size(); i++) {
 			if (R[i].symbol == '(') {
 				sLvl = 1;
 				iLvl = 0;
 				for (int j = i + 1; (j < R.size() && sLvl != 0); j++) {
 					if (X.find(R[j].symbol) != string::npos && sLvl == 1 && iLvl == 0)
-						R[j-1].addDependsOn(i - 1);
+						R[j - 1].addDependsOn(i - 1);
 					else if (R[j].symbol == '(')
 						sLvl++;
 					else if (R[j].symbol == ')')
@@ -108,7 +105,7 @@ private:
 				sLvl = 0;
 				for (int j = i + 1; (j < R.size() && iLvl != 0); j++) {
 					if (X.find(R[j].symbol) != string::npos && iLvl == 1 && sLvl == 0)
-						R[j-1].addDependsOn(i - 1);
+						R[j - 1].addDependsOn(i - 1);
 					else if (R[j].symbol == '<')
 						iLvl++;
 					else if (R[j].symbol == '>')
@@ -121,21 +118,17 @@ private:
 				continue;
 			}
 		}
-	}
 
-	void secondRule() {
-        /*Второе правило:
-         Место расположенное справа от закрывающей скобки
-         подчинено конечным местам термов многочлена*/
-		int sLvl = 0;
-        int iLvl = 0;
-        for (int i = R.size() - 1; i >= 0; i--) {
+		/*Второе правило:
+		Место расположенное справа от закрывающей скобки
+		подчинено конечным местам термов многочлена*/
+		for (int i = R.size() - 1; i >= 0; i--) {
 			if (R[i].symbol == ')') {
 				sLvl = 1;
 				iLvl = 0;
 				for (int j = i - 1; (j >= 0 && sLvl != 0); j--) {
 					if (X.find(R[j].symbol) != string::npos && sLvl == 1 && iLvl == 0)
-						R[i+1].addDependsOn(j + 1);
+						R[i + 1].addDependsOn(j + 1);
 					else if (R[j].symbol == ')')
 						sLvl++;
 					else if (R[j].symbol == '(')
@@ -152,15 +145,15 @@ private:
 				sLvl = 0;
 				for (int j = i - 1; (j >= 0 && iLvl != 0); j--) {
 					if (X.find(R[j].symbol) != string::npos && iLvl == 1 && sLvl == 0)
-						R[i+1].addDependsOn(j + 1);
+						R[i + 1].addDependsOn(j + 1);
 					else if (R[j].symbol == '>')
 						iLvl++;
 					else if (R[j].symbol == '<') {
-                        if (iLvl == 1) {
-                            R[i+1].addDependsOn(j - 1);
-                            iLvl--;
-                        }
-                    }
+						if (iLvl == 1) {
+							R[i + 1].addDependsOn(j - 1);
+							iLvl--;
+						}
+					}
 					else if (R[j].symbol == ')')
 						sLvl++;
 					else if (R[j].symbol == '(')
@@ -169,56 +162,63 @@ private:
 				continue;
 			}
 		}
-    }
-    
-	void thirdRule() {
+		
 		/* Третье правило:
 		Начальные места всех термов многочлена
-		заключенного в итерационные скобки 
+		заключенного в итерационные скобки
 		подчинены месту расположенному справа от закрывающей скобки
 		*/
-        int iLvl = 0;
-        for (int i = R.size() - 1; i >= 0; i--) {
-            if (R[i].symbol == '>') {
-                iLvl = 1;
-                for (int j = i - 1; (j >= 0 && iLvl != 0); j--) {
-                    if (X.find(R[j].symbol) != string::npos && iLvl == 1) {
-                        R[j-1].addDependsOn(i + 1);
-                    }
-                    else if (R[j].symbol == '<') {
-                        iLvl--;
-                    }
-                }
-            }
-        }
-    }
+		for (int i = R.size() - 1; i >= 0; i--) {
+			if (R[i].symbol == '>') {
+				iLvl = 1;
+				for (int j = i - 1; (j >= 0 && iLvl != 0); j--) {
+					if (X.find(R[j].symbol) != string::npos && iLvl == 1) {
+						R[j - 1].addDependsOn(i + 1);
+					}
+					else if (R[j].symbol == '<') {
+						iLvl--;
+					}
+				}
+			}
+		}
+		
+		/*Четвертое правило:
+		Если место a подчинено месту b,
+		и место b подчинено месту c, то
+		место a подчинено месту c
+		*/
+		bool isSmthChanged = false;
+		do {
+			isSmthChanged = false;
+			// Пробегаем все места выражения
+			for (int i = 0; i < R.size(); i += 2)
+				// Пробегаем j мест, которым подчинено место i
+			for (int j = 0; j < R[i].dependsOn.size(); j++)
+				// Пробегаем выражение в поиске места подчиненного месту i
+			for (int k = 0; k < R.size(); k += 2)
+			if (find(R[k].dependsOn.begin(), R[k].dependsOn.end(), i) != R[k].dependsOn.end())
+			if (R[k].addDependsOn(R[i].dependsOn[j]))
+				isSmthChanged = true;
+		} while (isSmthChanged);
+		
+		//int slvl = 0;
+		//int ilvl = 0;
+		//for (int i = 0; i < r.size(); i++) {
+		//	if (x.find(r[j].symbol) != string::npos ) {
 
-	void forthRule() {
-        /*Четвертое правило:
-         Если место a подчинено месту b,
-         и место b подчинено месту c, то
-         место a подчинено месту c
-         */
+		//	}
+		//}
+	}
 
-        bool isSmthChanged = false;
-        do {
-            isSmthChanged = false;
-            // Пробегаем все места выражения
-            for (int i = 0; i < R.size(); i+=2)
-                // Пробегаем j мест, которым подчинено место i
-                for (int j = 0; j < R[i].dependsOn.size(); j++)
-                    // Пробегаем выражение в поиске места подчиненного месту i
-                    for (int k = 0; k < R.size(); k+=2)
-                        if (find(R[k].dependsOn.begin(), R[k].dependsOn.end(), i) != R[k].dependsOn.end())
-                            if (R[k].addDependsOn(R[i].dependsOn[j]))
-                                isSmthChanged = true;
-        } while(isSmthChanged);
-    }
+	void definePLaces() {
+
+	}
 
 public:
 	void initDefault() {
 		loadFromFile();
 		defineDependings();
+		definePlaces();
 	}
 };
 
