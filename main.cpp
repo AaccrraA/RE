@@ -78,10 +78,11 @@ private:
 	}
     
 	void firstRule() {
-		/*œÂ‚ÓÂ Ô‡‚ËÎÓ:
-		Õ‡˜‡Î¸Ì˚Â ÏÂÒÚ‡ ‚ÒÂı ÔÂÂÏÂÌÌ˚ı
-		ÔÓÏÂ˘ÂÌÌ˚ı ‚ ËÚÂ‡ˆËÓÌÌ˚Â ÒÍÓ·ÍË
-		ÔÓ‰˜ËÌÂÌ˚ ÏÂÒÚÛ ‡ÒÔÓÎÓÊÂÌÌÓÏÛ ÒÎÂ‚‡ ÓÚ ÓÚÍ˚‚‡˛˘ÂÈ ÒÍÓ·ÍË*/
+		/* Первое правило:
+		Начальные места всех термов многочлена помещенных в обычные или
+		итерационные скобки подчинены месту, 
+		расположенному слева от открывающей скобки
+		*/
 		int sLvl = 0;
         int iLvl = 0;
 		for (int i = 0; i < R.size(); i++) {
@@ -128,11 +129,11 @@ private:
          подчинено конечным местам термов многочлена*/
 		int sLvl = 0;
         int iLvl = 0;
-        for (int i = R.size(); i > 0; i--) {
+        for (int i = R.size() - 1; i >= 0; i--) {
 			if (R[i].symbol == ')') {
 				sLvl = 1;
 				iLvl = 0;
-				for (int j = i - 1; (j > 0 && sLvl != 0); j--) {
+				for (int j = i - 1; (j >= 0 && sLvl != 0); j--) {
 					if (X.find(R[j].symbol) != string::npos && sLvl == 1 && iLvl == 0)
 						R[i+1].addDependsOn(j + 1);
 					else if (R[j].symbol == ')')
@@ -149,7 +150,7 @@ private:
 			else if (R[i].symbol == '>') {
 				iLvl = 1;
 				sLvl = 0;
-				for (int j = i - 1; (j > 0 && iLvl != 0); j--) {
+				for (int j = i - 1; (j >= 0 && iLvl != 0); j--) {
 					if (X.find(R[j].symbol) != string::npos && iLvl == 1 && sLvl == 0)
 						R[i+1].addDependsOn(j + 1);
 					else if (R[j].symbol == '>')
@@ -171,11 +172,16 @@ private:
     }
     
 	void thirdRule() {
+		/* Третье правило:
+		Начальные места всех термов многочлена
+		заключенного в итерационные скобки 
+		подчинены месту расположенному справа от закрывающей скобки
+		*/
         int iLvl = 0;
-        for (int i = R.size(); i > 0; i--) {
+        for (int i = R.size() - 1; i >= 0; i--) {
             if (R[i].symbol == '>') {
                 iLvl = 1;
-                for (int j = i - 1; (j > 0 && iLvl != 0); j--) {
+                for (int j = i - 1; (j >= 0 && iLvl != 0); j--) {
                     if (X.find(R[j].symbol) != string::npos && iLvl == 1) {
                         R[j-1].addDependsOn(i + 1);
                     }
